@@ -1,7 +1,7 @@
 # normalization <- function(microArrayData, phenoData, normType) {
 normalization <- function(data, normType) {
   
-  library(affy);library(gcrma); library(limma);library(oligo)
+  library(affy);library(gcrma); library(limma);library(oligo);library(vsn)
   
   # annotatedDataFrame <- read.AnnotatedDataFrame(file.path(phenoData),
   #                                               sep = "\t",
@@ -16,6 +16,10 @@ normalization <- function(data, normType) {
   if(normType == "RMA"){normData = affy::rma(data)}
   if(normType == "GCRMA"){normData = gcrma(data)}
   if(normType == "MAS"){normData = mas5(data)}
+  if(normType == "VSN"){
+    fitData = vsn2(data)
+    normData = predict(fitData, data)
+  }
 
   return(normData)
 
