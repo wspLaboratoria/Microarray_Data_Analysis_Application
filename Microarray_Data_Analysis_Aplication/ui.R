@@ -1,18 +1,13 @@
-library(shiny)
-library(shinyFiles)
-library(htmltools)
-library(vroom)
-library(Biobase)
+# shiny package to add loading graphics
 library(shinycustomloader)
-
 
 ui <- fluidPage(
     
-    titlePanel("Microarray Analysis Aplication"),
+    titlePanel("Microarray Analysis Application"),
     
     sidebarLayout(
         
-        sidebarPanel(width = 2,
+        sidebarPanel(width = 3,
             
             ## upload text file with phenoData
             fileInput(inputId = "phenoData", 
@@ -29,27 +24,28 @@ ui <- fluidPage(
             ## selectBox for choosing normalization method
             selectInput("normalizeMethod",
                         label = "Choose normalization method",
-                        choices = list("RMA","GCRMA","MAS","VSN"),
-                        selected = 1),
+                        choices = list("RMA","GCRMA","MAS"),
+                        selected = 1,
+                        selectize = FALSE),
             
             ## selectBox for choosing kind of analysis
             selectInput("analysisChoice",
                         label = "Choose type of analysis",
                         choices = list("Differential Gene Expression","C-Means Clustering","Hierarchical Clustering"),
-                        selected = 1),
+                        selected = 1,
+                        selectize = FALSE),
             
         ),
         
-        mainPanel(width = 10,
+        mainPanel(width = 9,
             tabsetPanel(
                 tabPanel(title = "Quality Control",
                          icon = icon("check-circle"),
-                         width = 1000,
                          
                          
                              fluidRow(
-                                 column(6, align = "center", strong("RAW DATA")),
-                                 column(6, align = "center", strong("NORMALIZED DATA"))
+                                 column(6, align = "center", strong("Raw Data")),
+                                 column(6, align = "center", strong("Normalized Data"))
                              ),
                                  
                              fluidRow(
@@ -60,6 +56,13 @@ ui <- fluidPage(
                                  column(6,withLoader(plotOutput("histRaw")),type = "html",loader="dmaspin"),
                                  column(6,withLoader(plotOutput("histNorm")),type = "html",loader="dmaspin")
                              ),
+                         
+                             fluidRow(
+                                 column(1, uiOutput("prevBin")),
+                                 column(2, uiOutput("sampleNamesSelectBox")),
+                                 column(1, uiOutput("nextBin"))
+                             ),     
+                         
                              fluidRow(
                                  column(6,withLoader(plotOutput("maPlotRaw")),type = "html",loader="dmaspin"),
                                  column(6,withLoader(plotOutput("maPlotNorm")),type = "html",loader="dmaspin")
@@ -67,9 +70,11 @@ ui <- fluidPage(
                         
                         ),
                 
-                tabPanel(title = uiOutput("tabTitle"),
-                         plotOutput(""))
                 
+                tabPanel(title = uiOutput("tabTitle"),
+                         width = 1000,
+                         uiOutput("layoutTabPanel")
+                        )
             )
         )
     )

@@ -9,6 +9,10 @@ readData <- function(dataPath, phenoDataPath){
                                                 stringsAsFactors = F)
   
   
-  data <- read.affybatch(filenames = file.path(dataPath),
-                         phenoData = annotatedDataFrame)
+  data <- ReadAffy(filenames = file.path(dataPath),
+                   sampleNames = annotatedDataFrame@data[["Sample"]],
+                   phenoData = annotatedDataFrame)
+
+
+  return(data)
 }
