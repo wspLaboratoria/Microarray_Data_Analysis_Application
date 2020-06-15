@@ -14,36 +14,15 @@ hc=function(data,geneNumber,dist_method,clust_method,cut_number){
   wariancjeIndeksyPosortowane <- order(wariancje,decreasing = TRUE)
   
   dataHeatmap <- data.matrix[wariancjeIndeksyPosortowane[1:geneNumber],]
-  #head(mydatascale)
-  
   
   mydatascale <- (scale(t(dataHeatmap))) # Centers
   d <- dist(mydatascale, method = dist_method)
   hc <- hclust(d, method =clust_method)
   
-  
- # plot(hc)
   sub_grp <- cutree(hc, k = cut_number)
   
   klastry <- fviz_cluster(list(data = mydatascale, cluster = sub_grp), geom='text')
-  
-  
-  #heatmap.2(dataHeatmap, 
-   #         dendrogram='col', 
-            #Rowv =as.dendrogram(hr), Colv= as.dendrogram(hc),
-    #        label_names = c("row", "column", "value"),
-     #       col = viridis(100),
-      #      trace="none",              # hide trace
-       #     density.info="none",       # hide histogram
-            
-        #    margins = c(5,18),         # margin on top(bottom) and left(right) side.
-         #   cexRow=1, cexCol = 0.8,      # size of row / column labels
-          #  srtCol=0, adjCol = c(0.5,1), # adjust the direction of row label to be horizontal
-            # margin for the color key
-            # ("bottom.margin", "left.margin", "top.margin", "left.margin" )
-            #key.par=list(mar=c(5,1,3,1))
-           # key = F,
-            # )
+
   p <- heatmaply(dataHeatmap, 
                  dendrogram = c("both"),
                  dist_method = dist_method,

@@ -36,7 +36,7 @@ server <- function(input, output, session) {
     ## Quality Control 
     source(paste(getwd(),"/R/readData.R", sep=""))
     source(paste(getwd(),"/R/normalization.R", sep=""))
-    source(paste(getwd(),"/R/createBoxplot.R", sep=""))
+    source(paste(getwd(),"/R/boxplot.R", sep=""))
     source(paste(getwd(),"/R/histPlot.R", sep=""))
     source(paste(getwd(),"/R/maPlot.R", sep=""))
     
@@ -52,8 +52,8 @@ server <- function(input, output, session) {
     
     ### C-Means Clustering ###
     source(paste(getwd(),"/R/kmen.R", sep=""))
-    
    
+    ### reactive variables ###
     dataUploaded <- reactive({
         validate(
             need(input$celInfiles, 'Please enter microarray data (.CEL files)'),
@@ -90,7 +90,19 @@ server <- function(input, output, session) {
         dataNorm()@phenoData@data$CLASS
     })
     
+    ### ui parts ###
     output$tabTitle <- renderText({input$analysisChoice})
+    
+    output$headers <- renderUI({
+      if (dataUploadedNoComment()) {
+        dashboardBody(
+          fluidRow(
+            column(6, align = "center", strong("Raw Data")),
+            column(6, align = "center", strong("Normalized Data"))
+          )
+        )
+      }
+    })
 
     ### Quality Control ###
     # read data #
@@ -107,30 +119,42 @@ server <- function(input, output, session) {
         }
     })
 
+    # number of genes for Quality Control #
+    output$qc_numGenes <- renderUI({
+      if (dataUploadedNoComment()) {
+          dashboardBody(
+            sliderInput("qc_numGenes", "Number of genes", min = 2, max = dim(dataNorm())[1], value = 100, step = 1, width = '75%')
+          )
+        }
+    })
+    outputOptions(output, "qc_numGenes", priority = 10)
+
     # boxplot #
-    output$boxplotRaw <- renderPlot({
+    output$boxplotRaw <- renderPlotly({
         # use validate with comment to inform user to load files
         if (dataUploaded()) {
-            createBoxplot(data())
+          boxplot(data(),dataNorm(),input$qc_numGenes)
         }
     })
 
-    output$boxplotNorm <- renderPlot({
+
+    
+    output$boxplotNorm <- renderPlotly({
         if (dataUploadedNoComment()) {
-            createBoxplot(dataNorm())
+            boxplot(dataNorm(),dataNorm(),input$qc_numGenes)
         }
     })
 
     # histogram #
-    output$histRaw <- renderPlot({
+    output$histRaw <- renderPlotly({
         if (dataUploadedNoComment()) {
-            histPlot(data())
+            histPlot(data(),dataNorm(),input$qc_numGenes)
         }
     })
 
-    output$histNorm <- renderPlot({
+    output$histNorm <- renderPlotly({
         if (dataUploadedNoComment()) {
-            histPlot(dataNorm())
+            histPlot(dataNorm(),dataNorm(),input$qc_numGenes)
         }
     })
     
@@ -179,17 +203,15 @@ server <- function(input, output, session) {
     })
     
     # maPlot #
-    # TODO: improve the function for single sample 
-    # input$sampleMaPlot
     output$maPlotRaw <- renderPlot({
         if (dataUploadedNoComment()) {
-            maPlot(data())
+            maPlot(data(),input$sampleMaPlot)
         }
     })
 
     output$maPlotNorm <- renderPlot({
         if (dataUploadedNoComment()) {
-            maPlot(dataNorm())
+            maPlot(dataNorm(),input$sampleMaPlot)
         }
     })
 

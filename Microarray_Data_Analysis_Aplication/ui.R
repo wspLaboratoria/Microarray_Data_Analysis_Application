@@ -1,5 +1,6 @@
 # shiny package to add loading graphics
 library(shinycustomloader)
+library(plotly)
 
 ui <- fluidPage(
     
@@ -41,27 +42,41 @@ ui <- fluidPage(
             tabsetPanel(
                 tabPanel(title = "Quality Control",
                          icon = icon("check-circle"),
-                         
-                         
+
                              fluidRow(
-                                 column(6, align = "center", strong("Raw Data")),
-                                 column(6, align = "center", strong("Normalized Data"))
-                             ),
+                                 column(12,  align = "center", uiOutput("qc_numGenes"))
                                  
-                             fluidRow(
-                                 column(6,withLoader(plotOutput("boxplotRaw")),type = "html",loader="dmaspin"),
-                                 column(6,withLoader(plotOutput("boxplotNorm")),type = "html",loader="dmaspin")
                              ),
+                            
+                             br(),
+                             br(),
+                         
+                            uiOutput("headers"),
+
                              fluidRow(
-                                 column(6,withLoader(plotOutput("histRaw")),type = "html",loader="dmaspin"),
-                                 column(6,withLoader(plotOutput("histNorm")),type = "html",loader="dmaspin")
+                                 column(6,withLoader(plotlyOutput("boxplotRaw")),type = "html",loader="dmaspin"),
+                                 column(6,withLoader(plotlyOutput("boxplotNorm")),type = "html",loader="dmaspin")
                              ),
+                         
+                             br(),
+                             br(),
+
+                             fluidRow(
+                                 column(6,withLoader(plotlyOutput("histRaw")),type = "html",loader="dmaspin"),
+                                 column(6,withLoader(plotlyOutput("histNorm")),type = "html",loader="dmaspin")
+                            ),
+                         
+                             br(),
+                             br(),
                          
                              fluidRow(
                                  column(1, uiOutput("prevBin")),
                                  column(2, uiOutput("sampleNamesSelectBox")),
                                  column(1, uiOutput("nextBin"))
                              ),     
+                            
+                             br(),
+                             br(),
                          
                              fluidRow(
                                  column(6,withLoader(plotOutput("maPlotRaw")),type = "html",loader="dmaspin"),
