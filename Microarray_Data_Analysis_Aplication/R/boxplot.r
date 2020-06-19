@@ -3,7 +3,7 @@ boxplot=function(data,data.norm,geneNumber){
   data.matrix=exprs(data)
   data.matrix1=exprs(data.norm)
   
-  t <- list(size = 11)
+  t <- list(size = 8)
   
   if(identical(data.matrix,data.matrix1)==T){
     

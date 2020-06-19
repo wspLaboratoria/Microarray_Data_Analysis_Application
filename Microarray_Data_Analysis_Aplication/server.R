@@ -81,7 +81,7 @@ server <- function(input, output, session) {
             hc(dataNorm(), input$h_numGenes, input$h_distMethod, input$h_clusterMethod, input$h_numCluster)
         }
     })
-    
+
     sampleInData <- reactive({
         data()@phenoData@data$Sample
     })
@@ -133,28 +133,34 @@ server <- function(input, output, session) {
     output$boxplotRaw <- renderPlotly({
         # use validate with comment to inform user to load files
         if (dataUploaded()) {
-          boxplot(data(),dataNorm(),input$qc_numGenes)
+          if(length(input$qc_numGenes) > 0){
+            boxplot(data(),dataNorm(),input$qc_numGenes)
+          }
         }
     })
 
-
-    
     output$boxplotNorm <- renderPlotly({
         if (dataUploadedNoComment()) {
+          if(length(input$qc_numGenes) > 0){
             boxplot(dataNorm(),dataNorm(),input$qc_numGenes)
+          }
         }
     })
 
     # histogram #
     output$histRaw <- renderPlotly({
         if (dataUploadedNoComment()) {
+          if(length(input$qc_numGenes) > 0){
             histPlot(data(),dataNorm(),input$qc_numGenes)
+          }
         }
     })
 
     output$histNorm <- renderPlotly({
         if (dataUploadedNoComment()) {
+          if(length(input$qc_numGenes) > 0){
             histPlot(dataNorm(),dataNorm(),input$qc_numGenes)
+          }
         }
     })
     
@@ -233,6 +239,9 @@ server <- function(input, output, session) {
     output$dataTableDifferencialGenes <- renderTable({
         if (dataUploadedNoComment()) {
             dataTableDifferencialGenes(dataNorm(),input$group1_difGenes,input$group2_difGenes)
+          
+            # TODO: update Ola function
+            # dataTableDifferencialGenes(dataNorm(),input$group1_difGenes,input$group2_difGenes, input$cutoff_p_FDR)
         }
     })
 
@@ -244,8 +253,19 @@ server <- function(input, output, session) {
         dataTablesignalTransductionPathway(2)
     })  
     
+    # TODO: add Ola's functions
+    # output$boxplotGenes <- renderPlotly({
+    #   
+    # })
+    # 
+    # output$histogramGenes <- renderPlotly({
+    #   
+    # })
+    
+    # TODO: Ola foldchange
+    
     ### Hierarchical Clustering ###
-    output$h_cluster <- renderPlot({
+    output$h_cluster <- renderPlotly({
         if (dataUploadedNoComment()) {
             resultHCluster()[[1]]
         }
@@ -255,7 +275,7 @@ server <- function(input, output, session) {
         if (dataUploadedNoComment()) {
             resultHCluster()[[2]]
         }
-    })  
+    })
     
     ### C-Means Clustering ###
     output$kmen_cluster <- renderPlot({
@@ -280,7 +300,8 @@ server <- function(input, output, session) {
                 dashboardBody(
                     
                     fluidRow(
-                        column(12, align = "left", strong("Choose two groups to perform t test:"))
+                        column(6, align = "left", strong("Choose two groups to perform t test:")),
+                        column(3, align = "left", strong("Cut-off p-value of false discovery rate:"))
                     ),
                     
                     fluidRow(
@@ -291,12 +312,13 @@ server <- function(input, output, session) {
                         column(3, align = "left", selectInput("group2_difGenes",label = "Group 2",
                                                                 choices = unique(classInData()),
                                                                 selected = unique(classInData())[[2]],
-                                                                selectize = FALSE))
+                                                                selectize = FALSE)),
+                        
+                        column(3, align = "left", sliderInput("cutoff_p_FDR", "", min = 0, max = 1,value = 0.01))
                     ),
                     
                     fluidRow(
                         column(6, align = "center", plotOutput("pca_genes")),
-                        
                         # TODO: waiting for real function for Heatmap
                         # column(4,withLoader(plotOutput("hitmap_genes")),type = "html",loader="dmaspin")
                         column(6, align = "center", plotOutput("hitmap_genes"))
@@ -310,7 +332,13 @@ server <- function(input, output, session) {
                     fluidRow(
                         column(6, align = "center", tableOutput("dataTableDifferencialGenes")),
                         column(6, align = "center", tableOutput("dataTablesignalTransductionPathway"))
-                    )
+                    ),
+                    
+                    # TODO: boxplot and histogram for genes
+                    # fluidRow(
+                    #   column(6, align = "center", plotlyOutput("boxplotGenes")),
+                    #   column(6, align = "center", plotlyOutput("histogramGenes"))
+                    # )
       
                 )
             }
@@ -330,8 +358,8 @@ server <- function(input, output, session) {
                                                                 step = 1, width = '100%'))
                     ),
                     
-                  
                     fluidRow(
+                      # TODO: kmen_cluster convert to plotly - plotlyOutput
                         column(6, align = "center", plotOutput("kmen_cluster")),
                         column(6, align = "center", tableOutput("kmen_table"))
                     )
@@ -363,8 +391,12 @@ server <- function(input, output, session) {
                     
     
                     fluidRow(
-                        column(6, align = "center", plotOutput("h_cluster")),
-                        column(6, align = "center", plotlyOutput("hitmap_dendogram_h_cluster"))
+                      # TODO: h_cluster convert to plotly - plotlyOutput
+                        column(12, align = "center", plotlyOutput("h_cluster", width='75%', height = "100%"))
+                    ),
+                    
+                    fluidRow(
+                        column(12, align = "center", plotlyOutput("hitmap_dendogram_h_cluster", width='75%', height = "100%")),
                     )
                 )
             }

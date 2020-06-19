@@ -19,9 +19,6 @@ kmen <- function(data, geneNumber, number_klast, dist_method){
   
   plot_km <- fviz_cluster(k2, data = mydatascale, geom='text')
   
-  
-
-  
   tmp=data.frame(Clusters=k2$cluster)
   table=data.frame(Sample=rownames(tmp),tmp,row.names = NULL) 
     
