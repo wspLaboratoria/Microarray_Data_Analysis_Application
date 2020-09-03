@@ -1,4 +1,4 @@
-dataTableDifferencialGenes <- function(dataNormalized,grupa1,grupa2){
+dataTableDifferencialGenes <- function(dataNormalized,grupa1,grupa2,progFDR){
   dataExprs <- exprs(dataNormalized)
   colnames(dataExprs) <- dataNormalized@phenoData@data$CLASS
   kolumny <- colnames(dataExprs)
@@ -18,11 +18,11 @@ dataTableDifferencialGenes <- function(dataNormalized,grupa1,grupa2){
   
   #poprawka FDR
   FDR_p_values <- as.matrix(p.adjust(results[,2],method='fdr',n=length(results[,2])))
-  colnames(FDR_p_values) <- "p_value FDR"
+  colnames(FDR_p_values) <- "P_value FDR"
   
   results <- cbind(results,FDR_p_values)
   
   #roznicujace
-  Table_Diff_Genes <- as.data.frame(results[results[,"p_value FDR"]<0.05,])
+  Table_Diff_Genes <- as.data.frame(results[results[,"P_value FDR"]<progFDR,])
   return(Table_Diff_Genes)
 }

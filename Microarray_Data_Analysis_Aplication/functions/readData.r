@@ -1,6 +1,5 @@
 readData <- function(dataPath, phenoDataPath){
   
-  library(affy);library(gcrma); library(limma);library(oligo)
   
   annotatedDataFrame <- read.AnnotatedDataFrame(file.path(phenoDataPath),
                                                 sep = "\t",

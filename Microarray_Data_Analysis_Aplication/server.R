@@ -4,6 +4,7 @@ library(shinydashboard)
 library(shinyFiles)
 library(htmltools)
 
+
 # normalization of data
 library(affy)
 library(gcrma) 
@@ -14,46 +15,76 @@ library(oligo)
 library(plotly)
 library(ggplot2)
 
-# ### hierarhical clastering - hc.R ###
+# signal trasduction pathway
+library(hgu95av2.db)
+
+# hierarhical clastering - hc.R
 library(dendextend)
-library(heatmaply)
 library(factoextra)
 library(ggdendro)
 library(colorspace)
+library(heatmaply)
+library(stringr)
 
-### C-means clastering - kmen.R ###
+
+# C-means clastering - kmen.R
 library(tidyverse)  # data manipulation
 library(cluster)    # clustering algorithms
-library(factoextra)
+library(factoextra) 
 library(amap)
+library(colorspace)
+
 
 server <- function(input, output, session) {
     
     ### setting paths and options ###
     options(shiny.maxRequestSize=30*1024^2) 
     
-    ###  SOURCE FOR FUNCTIONS ###
-    ## Quality Control 
-    source(paste(getwd(),"/R/readData.R", sep=""))
-    source(paste(getwd(),"/R/normalization.R", sep=""))
-    source(paste(getwd(),"/R/boxplot.R", sep=""))
-    source(paste(getwd(),"/R/histPlot.R", sep=""))
-    source(paste(getwd(),"/R/maPlot.R", sep=""))
-    
-    
-    ## Differential Gene Expression ###
-    source(paste(getwd(),"/R/pca_genes.R", sep=""))
-    source(paste(getwd(),"/R/hitmap_genes.R", sep=""))
-    source(paste(getwd(),"/R/dataTableDifferencialGenes.R", sep=""))
-    source(paste(getwd(),"/R/dataTablesignalTransductionPathway.R", sep=""))
-    
-    ### Hierarchical Clustering ###
-    source(paste(getwd(),"/R/hc.R", sep=""))
-    
-    ### C-Means Clustering ###
-    source(paste(getwd(),"/R/kmen.R", sep=""))
-   
-    ### reactive variables ###
+    # ###  SOURCE FOR FUNCTIONS ###
+    # ## Quality Control 
+    # source(paste(getwd(),"/R/readData.R", sep=""))
+    # source(paste(getwd(),"/R/normalization.R", sep=""))
+    # source(paste(getwd(),"/R/boxplot.R", sep="")) 
+    # source(paste(getwd(),"/R/histPlot.R", sep=""))
+    # source(paste(getwd(),"/R/maPlot.R", sep=""))
+    # 
+    # 
+    # ## Differential Gene Expression ###
+    # source(paste(getwd(),"/R/pca_genes.R", sep=""))
+    # source(paste(getwd(),"/R/dataTableDifferencialGenes.R", sep=""))
+    # source(paste(getwd(),"/R/dataTablesignalTransductionPathway.R", sep=""))
+    # source(paste(getwd(),"/R/BoxPlotDifferencialGenes.R", sep=""))
+    # source(paste(getwd(),"/R/HistogramDifferencialGenes.R", sep=""))
+    # 
+    # ### Hierarchical Clustering ###
+    # source(paste(getwd(),"/R/hc.R", sep=""))
+    # 
+    # ### C-Means Clustering ###
+    # source(paste(getwd(),"/R/kmen.R", sep=""))
+
+  
+  ###  SOURCE FOR FUNCTIONS ###
+  ## Quality Control 
+  source("functions/readData.r")
+  source("functions/normalization.r")
+  source("functions/boxplot.r") 
+  source("functions/histPlot.r")
+  source("functions/maPlot.r")
+  
+  
+  ## Differential Gene Expression ###
+  source("functions/pca_genes.r")
+  source("functions/dataTableDifferencialGenes.r")
+  source("functions/BoxPlotDifferencialGenes.r")
+  source("functions/HistogramDifferencialGenes.r")
+  
+  ### Hierarchical Clustering ###
+  source("functions/hc.r")
+  
+  ### C-Means Clustering ###
+  source("functions/kmen.r")
+  
+  
     dataUploaded <- reactive({
         validate(
             need(input$celInfiles, 'Please enter microarray data (.CEL files)'),
@@ -68,6 +99,12 @@ server <- function(input, output, session) {
             need(input$phenoData, '')
         )
         return(!(is.null(input$phenoData) && is.null(input$celInfiles)))
+    })
+    
+    resultDifferencialGenesTable <- reactive({
+        if (dataUploadedNoComment()) {
+          dataTableDifferencialGenes(dataNorm(),input$group1_difGenes,input$group2_difGenes,input$cutoff_p_FDR)
+        }
     })
     
     resultKmenCluster <- reactive({
@@ -221,15 +258,7 @@ server <- function(input, output, session) {
         }
     })
 
-    ### Differential Gene Expression ###
-    # TODO: Ola's hitmap
-    output$hitmap_genes <- renderPlot({
-        # if (dataUploadedNoComment()) {
-            # hitmap_genes(dataNorm())
-        # }
-        hitmap_genes(2)
-    })  
-    
+    ### Differential Gene Expression ##
     output$pca_genes <- renderPlot({
         if (dataUploadedNoComment()) {
             pca_genes(dataNorm())
@@ -238,31 +267,18 @@ server <- function(input, output, session) {
     
     output$dataTableDifferencialGenes <- renderTable({
         if (dataUploadedNoComment()) {
-            dataTableDifferencialGenes(dataNorm(),input$group1_difGenes,input$group2_difGenes)
-          
-            # TODO: update Ola function
-            # dataTableDifferencialGenes(dataNorm(),input$group1_difGenes,input$group2_difGenes, input$cutoff_p_FDR)
+          resultDifferencialGenesTable()
         }
     })
 
-    # TODO: Milena's function!
-    output$dataTableSignalTransductionPathway <- renderTable({
-        # if (dataUploadedNoComment()) {
-        # dataTableSignalTransductionPathway(dataNorm())
-        # }
-        dataTablesignalTransductionPathway(2)
-    })  
     
-    # TODO: add Ola's functions
-    # output$boxplotGenes <- renderPlotly({
-    #   
-    # })
-    # 
-    # output$histogramGenes <- renderPlotly({
-    #   
-    # })
-    
-    # TODO: Ola foldchange
+    output$boxplotGenes <- renderPlotly({
+      BoxPlotDifferencialGenes(dataNorm(),input$group1_difGenes,input$group2_difGenes, input$cutoff_p_FDR)
+    })
+
+    output$histogramGenes <- renderPlotly({
+      HistogramDifferencialGenes(dataNorm(),input$group1_difGenes,input$group2_difGenes, input$cutoff_p_FDR)
+    })
     
     ### Hierarchical Clustering ###
     output$h_cluster <- renderPlotly({
@@ -278,7 +294,7 @@ server <- function(input, output, session) {
     })
     
     ### C-Means Clustering ###
-    output$kmen_cluster <- renderPlot({
+    output$kmen_cluster <- renderPlotly({
         if (dataUploadedNoComment()) {
             resultKmenCluster()[[1]]
         }
@@ -313,33 +329,25 @@ server <- function(input, output, session) {
                                                                 choices = unique(classInData()),
                                                                 selected = unique(classInData())[[2]],
                                                                 selectize = FALSE)),
-                        
-                        column(3, align = "left", sliderInput("cutoff_p_FDR", "", min = 0, max = 1,value = 0.01))
+
+                        column(3, align = "left", sliderInput("cutoff_p_FDR", "", min = 0, max = 1,value = 0.05))
                     ),
                     
-                    fluidRow(
-                        column(6, align = "center", plotOutput("pca_genes")),
-                        # TODO: waiting for real function for Heatmap
-                        # column(4,withLoader(plotOutput("hitmap_genes")),type = "html",loader="dmaspin")
-                        column(6, align = "center", plotOutput("hitmap_genes"))
-                    ),
                     
                     fluidRow(
                         column(6, align = "center", strong("List of differencial genes")),
-                        column(6, align = "center", strong("Signal transduction pathway analysis results"))
+                        column(6, align = "center", strong(""))
                     ),
                             
                     fluidRow(
                         column(6, align = "center", tableOutput("dataTableDifferencialGenes")),
-                        column(6, align = "center", tableOutput("dataTablesignalTransductionPathway"))
+                        column(6, align = "center", plotOutput("pca_genes"))
                     ),
                     
-                    # TODO: boxplot and histogram for genes
-                    # fluidRow(
-                    #   column(6, align = "center", plotlyOutput("boxplotGenes")),
-                    #   column(6, align = "center", plotlyOutput("histogramGenes"))
-                    # )
-      
+                    fluidRow(
+                      column(6, align = "center", plotlyOutput("histogramGenes")),
+                      column(6, align = "center", plotlyOutput("boxplotGenes"))
+                    )
                 )
             }
             
@@ -359,8 +367,7 @@ server <- function(input, output, session) {
                     ),
                     
                     fluidRow(
-                      # TODO: kmen_cluster convert to plotly - plotlyOutput
-                        column(6, align = "center", plotOutput("kmen_cluster")),
+                        column(6, align = "center", plotlyOutput("kmen_cluster")),
                         column(6, align = "center", tableOutput("kmen_table"))
                     )
                 )
@@ -391,7 +398,6 @@ server <- function(input, output, session) {
                     
     
                     fluidRow(
-                      # TODO: h_cluster convert to plotly - plotlyOutput
                         column(12, align = "center", plotlyOutput("h_cluster", width='75%', height = "100%"))
                     ),
                     

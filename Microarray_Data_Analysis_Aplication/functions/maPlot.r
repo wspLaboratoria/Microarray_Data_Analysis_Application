@@ -6,10 +6,11 @@ maPlot <- function(data,sample_name){
   
   
   if (class(data) == 'ExpressionSet') {
-    plot <- oligo:: MAplot(data, which=indx)
+    plot <- oligo::MAplot(data, which=indx) 
   }
   if (class(data) == 'AffyBatch') {
     plot <- affy::MAplot(data, which=sample_name)
   }
   return(plot)
 }
+
